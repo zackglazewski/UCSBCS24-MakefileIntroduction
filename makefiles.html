@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>makefiles.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="cs24---introduction-to-makefiles">CS24 - Introduction to Makefiles</h1>
+<h2 id="what-is-a-makefile">What is a Makefile?</h2>
+<p>At a very general level, makefiles allow us to define aliases for commands that we may run on our command line. We might have a really long command that we would like to use and modify over and over again.</p>
+<p>For example, consider the following sequence of commands:</p>
+<pre class="hljs"><code><div>$ g++ file1.cpp file1.h -c
+$ g++ file2.cpp file2.h -c
+$ g++ main.cpp -c
+$ g++ main.o file1.o file2.o -o app
+</div></code></pre>
+<p>Here is a depiction of the compilation process for a project which includes file1.cpp/h, file2.cpp/h and main.cpp. Most of the time, when we make a change to one of these files, it means we must <em>recompile</em> the project, by calling the above sequence of commands.</p>
+<p>Makefiles give us the power to write an alias for this set of commands. We could configure a makefile such that, only writing something like:</p>
+<pre class="hljs"><code><div>$ make app
+</div></code></pre>
+<p>will call all of the commands needed to compile our source code into our executable. &quot;app&quot; in this case, is the makefile alias.</p>
+<h3 id="a-compilation-crash-course">A compilation crash course</h3>
+<p>Throughout this, you may get confused by the compilation commands. Very briefly, I will cover some core ideas.</p>
+<p>Compilation refers to the process of taking source code and converting it to something readable to your computer (binary). g++ is a compiler that we often use, along with clang++. The syntax for compiling is generally:</p>
+<p><code>[compiler] [source files] [flags] [target]</code></p>
+<p>Sometimes, we break our project down into helper files (like file1.cpp/h and file2.cpp/h)
+In cases like these, it may be ideal to compile these to object files and then link them later.</p>
+<h5 id="flags">Flags</h5>
+<p><code>-o</code> stands for &quot;compile and link&quot;. Not only will this compile source files to object files, it will link them together to form an executable you can run.</p>
+<p><code>-c</code> stands for &quot;compile only&quot;. This converts a source file to an object (.o) file, which you can link later.</p>
+<h3 id="the-recipe-analogy">The Recipe Analogy</h3>
+<p>Your friend is a chef. As a chef, they have a giant recipe book. Each recipe has a recipe name, a list of ingredients, and a step by step list of instructions of how to combine your ingredients in order to produce the recipe.</p>
+<p>Now suppose you asked your friend to make some Cherry Pie!</p>
+<ol>
+<li>They flip open their recipe book to the recipe whose name is &quot;Cherry Pie&quot;</li>
+<li>They scan the ingredients and check if they have every single one</li>
+<li>Once they obtain every ingredient, they follow the instructions, and... now we have a Cherry Pie!</li>
+</ol>
+<p>Now back to your computer. A makefile is a recipe book and now your computer is the chef!</p>
+<p>Now suppose you ask your computer to make an application called &quot;app&quot;</p>
+<ol>
+<li>Your computer scans the makefile to search for the recipe whose name is &quot;app&quot;</li>
+<li>You scan the recipe's dependency list and check if you have every single one</li>
+<li>Once every dependency is present, you execute the list of commands for that recipe and... you now have an application called &quot;app&quot;!</li>
+</ol>
+<h3 id="the-anatomy-of-a-makefile">The Anatomy of a Makefile</h3>
+<p>Again, every makefile is a list of recipes. Each recipe has a name, dependencies (ingredients) and commands (instructions) to execute.</p>
+<p>The general syntax for a recipe is as follows:</p>
+<pre class="hljs"><code><div><span class="hljs-section">recipeName: dependencyList</span>
+    first command
+    ...
+    last command
+</div></code></pre>
+<p>In our Cherry Pie example:</p>
+<pre class="hljs"><code><div><span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven
+</div></code></pre>
+<p>And for our &quot;app&quot; example:</p>
+<pre class="hljs"><code><div><span class="hljs-section">app: main.cpp file1.cpp file1.h file2.cpp file2.h</span>
+    g++ file1.cpp file1.h -c
+    g++ file2.cpp file2.h -c
+    g++ main.cpp -c
+    g++ main.o file1.o file2.o -o app
+</div></code></pre>
+<h3 id="the-case-of-the-missing-pie-crust">The Case of the Missing Pie Crust</h3>
+<p>For the second day in a row, you ask your friend to make a Cherry Pie. They scan their recipe book for &quot;Cherry Pie&quot;, and take a look at the ingredients: PieCrust and Cherries. They look around in their kitchen, and to their horror, there is no pie crust to be found!</p>
+<p>This would have been a disaster, but luckily, your friend happens to have a recipe for PieCrust in their recipe book! They use the PieCrust recipe, and then incorporate it into their CherryPie recipe.</p>
+<p>In makefile format, this looks like:</p>
+<pre class="hljs"><code><div><span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at 375°
+
+<span class="hljs-section">PieCrust: flour IceWater ... shortening</span>
+    Mix flour IceWater ... shortening
+    Flatten into circular disk
+</div></code></pre>
+<p>So, your friend follows these steps:</p>
+<ol>
+<li>Starts making CherryPie, notices we are missing PieCrust</li>
+<li>Jumps to PieCrust, notices we have all the ingredients for PieCrust</li>
+<li>Makes PieCrust using the recipe book instructions</li>
+<li>Jumps back to CherryPie, notices we have all the ingredients for CherryPie</li>
+<li>Makes CherryPie using the recipe book instructions.</li>
+</ol>
+<p>In a practical makefile example we might have something like this when compiling our app.</p>
+<pre class="hljs"><code><div><span class="hljs-section">app: main.o file1.o file2.o</span>
+    g++ main.o file1.o file2.o -o app
+
+<span class="hljs-section">main.o: main.cpp</span>
+    g++ main.cpp -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    g++ file1.cpp file1.h -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    g++ file2.cpp file2.h -c
+</div></code></pre>
+<p>Notice that all we have to do to compile the app, is still the following command:</p>
+<pre class="hljs"><code><div>$ make app
+</div></code></pre>
+<p>This is because it will scan for main.o, notice it doesn't exist, then <em>implicitly</em> call make main.o, scan for file1.o, then <em>implicitly</em> call make file1.o, and so on. Once the makefile has made all of these dependencies, it runs the final compilation command to compile &quot;app&quot;</p>
+<h3 id="making-changes-to-your-recipe">Making Changes to your Recipe!</h3>
+<p>After years (two days) of experience, your friend has mastered the art of baking Cherry Pies! They have learned that the pie usually comes out better if the oven is set to 425° instead. In fact, they have learned that <strong>most of their recipes</strong> come out better at a higher temperature. But that would mean they would have to change the temperature manually for every single recipe...</p>
+<p>Unfortunately in the real world with physical copy recipe books, this is the sad truth of making changes to recipes on a large scale. However! We have technology! The Makefile recipe book allows us to define variables and use them throughout our recipes!</p>
+<p>So, your friend changes the baking Makefile to look like:</p>
+<pre class="hljs"><code><div>OVEN_TEMP=425°
+
+<span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-section">PieCrust: flour IceWater ... shortening</span>
+    Mix flour IceWater ... shortening
+    Flatten into circular disk to make PieCrust
+
+<span class="hljs-section">ChocolateChipCookies: flour ... butter</span>
+    Mix Dry Ingredients
+    Mix Wet Ingredients
+    Pour Dry Ingredients into Wet Ingredients
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+</div></code></pre>
+<p>In the case of compiling our app, we may make choices for our use of a compiler. g++ is one example of a compiler, as well as clang++. Sometimes we might want to compile with g++ or clang++ depending on each benefits, and our goal in compilation.</p>
+<p>So, we can define our makefile in the following way:</p>
+<pre class="hljs"><code><div>CXX=g++
+
+<span class="hljs-section">app: main.o file1.o file2.o</span>
+    <span class="hljs-variable">$(CXX)</span> main.o file1.o file2.o -o app
+
+<span class="hljs-section">main.o: main.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> main.cpp -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    <span class="hljs-variable">$(CXX)</span> file1.cpp file1.h -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    <span class="hljs-variable">$(CXX)</span> file2.cpp file2.h -c
+</div></code></pre>
+<p>Now if we ever want to switch from g++ to clang++, we just change the value of CXX to clang++.</p>
+<p>Often times we have compilation flags. One common one is <code>-std=c++11</code> which means &quot;compile this program according to the c++11 standard&quot;. Another common flag is <code>-Wall</code> which means &quot;show me <strong>all</strong> warnings that are generated when compiling&quot;.</p>
+<p>Instead of writing <code>-std=c++11 -Wall</code> everywhere, we can define that too, as a variable:</p>
+<pre class="hljs"><code><div>CXX=g++
+CXX_FLAGS=-std=c++11 -Wall
+
+<span class="hljs-section">app: main.o file1.o file2.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$(CXX_FLAGS)</span> main.o file1.o file2.o -o app
+
+<span class="hljs-section">main.o: main.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$(CXX_FLAGS)</span> main.cpp -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$(CXX_FLAGS)</span> file1.cpp file1.h -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$(CXX_FLAGS)</span> file2.cpp file2.h -c
+</div></code></pre>
+<h3 id="simplifying-our-recipes">Simplifying our Recipes</h3>
+<p>For our pie crust recipe, you'll notice we have an instruction that says,</p>
+<ol>
+<li>Mix flour IceWater ... shortening</li>
+</ol>
+<p>However, we are really just mixing all of the ingredients in our ingredients list!
+Your friend thinks writing this all out twice is unnecessary, and rewrites the recipe to say:</p>
+<pre class="hljs"><code><div><span class="hljs-section">PieCrust: flour IceWater ... shortening</span>
+    Mix Ingredients
+    Flatten into circular disk to make RecipeName
+</div></code></pre>
+<p>Now, when your friend reads this recipe, they know that you need to mix all of the ingredients. You will also notice that we have changed &quot;to make PieCrust&quot; to &quot;to make RecipeName&quot;. RecipeName refers to... the name of the recipe, to be found to the left of the colon. So, RecipeName becomes a shortcut to PieCrust</p>
+<p>When compiling our app, you notice we also have this same problem of restating our dependencies (ingredients). So, we can simplify our make commands in the following way:</p>
+<pre class="hljs"><code><div>CXX=g++
+
+app: main.o file1.o file2.o
+    $(CXX) $^ -o $@
+
+main.o: main.cpp
+    $(CXX) $^ -c
+
+file1.o: file1.cpp file1.h
+    $(CXX) $^ -c
+
+file2.o: file2.cpp file2.h
+    $(CXX) $^ -c
+</div></code></pre>
+<p>Notice that <code>$^</code> is our way of saying &quot;Ingredients&quot; and <code>$@</code> is our way of saying &quot;RecipeName&quot;</p>
+<h3 id="a-note-on-other-uses-of-a-makefile">A Note on other uses of a Makefile</h3>
+<p>To get the idea of a makefile across, here is another, non-compilation, based application of Makefiles. Remember, Makefiles act as a place for us to create aliases to commands.</p>
+<h6 id="note-i-am-not-recommending-you-do-this-i-am-just-showcasing-the-functionality-of-a-makefile">Note* I am not recommending you do this, I am just showcasing the functionality of a Makefile</h6>
+<p>Have you ever been so tired of the same three git commands over and over again?</p>
+<pre class="hljs"><code><div>git add .
+git commit -m &quot;:3&quot;
+git push origin main
+</div></code></pre>
+<p>Yea me too... I wish there was a way to invoke all these commands at once...</p>
+<p>But then you realize, I can make a Makefile recipe for this! So you run to your makefile and type this in:</p>
+<pre class="hljs"><code><div>gitpush: 
+    git add .
+    git commit -m &quot;:3&quot;
+    git push origin main
+</div></code></pre>
+<p>Notice that gitpush does not have any dependencies. All you have to do it type in the command:</p>
+<pre class="hljs"><code><div>$ make gitpush
+</div></code></pre>
+<p>and your wishes will be executed.</p>
+<h6 id="note-again-i-dont-really-condone-this-most-of-the-time-you-want-to-add-particular-files-not-the-entire-directory-have-good-commit-messages-not-just-%223%22-and--or-to-push-to-different-branches-not-just-main">Note* Again, I don't really condone this, most of the time, you want to add particular files (not the entire directory), have good commit messages (not just &quot;:3&quot;) and / or to push to different branches (not just main).</h6>
+<p>The gist is: Makefiles are a powerful tool to help us compile our c++ programs. Happy Makefiling!</p>
+
+</body>
+</html>
