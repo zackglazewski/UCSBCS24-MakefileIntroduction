@@ -48,7 +48,7 @@ Now back to your computer. A makefile is a recipe book and now your computer is 
 
 Now suppose you ask your computer to make an application called "app"
 1. Your computer scans the makefile to search for the recipe whose name is "app"
-2. You scan the recipe's dependency list and check if you have every single one
+2. Your friend scans the recipe's dependency list and check if you have every single one
 3. Once every dependency is present, you execute the list of commands for that recipe and... you now have an application called "app"!
 
 ### The Anatomy of a Makefile
@@ -210,7 +210,7 @@ Now, when your friend reads this recipe, they know that you need to mix all of t
 
 When compiling our app, you notice we also have this same problem of restating our dependencies (ingredients). So, we can simplify our make commands in the following way:
 
-```
+```Makefile
 CXX=g++
 
 app: main.o file1.o file2.o
@@ -228,6 +228,219 @@ file2.o: file2.cpp file2.h
 
 Notice that ```$^``` is our way of saying "Ingredients" and ```$@``` is our way of saying "RecipeName"
 
+### Keeping it Fresh!
+Your friend is quite meticulous when it comes to baking. Every time your friend bakes something from their recipe book, they keep track of the freshness of every ingredient they used. So, every ingredient that appears in their recipe book has an associated freshness level, indicated via a timestamp. So, if our friend makes CherryPie at 11:00 a.m., PieCrust, along with all of its ingredients, has its freshness level updated to: 11:00am. Cherries are also updated in the same way. 
+
+Now, lets say you ask your friend, for the third day in a row, to make you a Cherry Pie. Your friend looks at the Cherry Pie they made yesterday and says, 
+> "Hmm... I already have this Cherry Pie that I made you yesterday, and all the ingredients in my pantry are of the same freshness as when I made the pie. Therefore, this pie is the freshest it can be. There is no need to make a new Cherry Pie, you can have this one instead!"
+
+So, your friend decides **NOT** make a new Cherry Pie and serves you the already existing one. 
+
+However, the next day, your friend takes a trip to the store and buys a brand spanking new can of Cherries. 
+
+When they get back, you ask them, for the fourth day in a row, for a Cherry Pie. Your friend consults their ingredient list and says, 
+> "Hmmm... I already have this Cherry Pie that I made you yesterday. However, these Cherries that I just bought from the store are fresher than the Cherries in that pie! Therefore, I will make you a brand new pie with these new Cherries I bought, so that you may experience the most freshest Cherry Pie possible!"
+
+
+So, your friend **DOES** decides to make a new Cherry Pie and serves it to you. 
+
+Makefiles in the programming world work in the same exact way. In our app example, if you run: ```make app```, makefile will remember the timestamps of each file at the time the command was ran. Timestamps only change if *a change is made to the file*. So, rather than making every recipe from scratch every time, makefile only re-makes the recipes which are **outdated**, saving on compilation time in most cases. 
+
+Lets be a little more specific by considering our running makefile:
+
+```
+CXX=g++
+
+app: main.o file1.o file2.o
+    $(CXX) $^ -o $@
+
+main.o: main.cpp
+    $(CXX) $^ -c
+
+file1.o: file1.cpp file1.h
+    $(CXX) $^ -c
+
+file2.o: file2.cpp file2.h
+    $(CXX) $^ -c
+```
+
+Suppose we start fresh and run ```make app```. The last time file1.cpp was changed was 11:00 a.m. and the last time file2.cpp was changed was 11:00 a.m. So, the makefile remembers these respective timestamps after the first ```make app``` call. Since it is the first time, the makefile implicitly makes every recipe: main.o, file1.o, and file2.o. 
+
+Now, if we run ```make app``` again without making any changes, Makefile will say:
+
+```make: `app' is up to date.```
+
+Now, lets make a change to file1.cpp at 11:05 a.m. and run ```make app```. 
+You will notice makefile only outputs:
+
+```
+g++ file1.cpp file1.h -c
+g++ main.o file1.o file2.o -o app
+```
+
+The makefile is **NOT** running:
+```
+g++ file2.cpp file2.h -c
+g++ main.cpp -c
+```
+
+This is because main.o and file2.o is already up to date, so there is no need to recompile them. As mentioned before, this saves on compilation time! This is a big deal because sometimes compilation can take a while, and you'd rather not recompile files that don't need to be recompiled. 
+
+### Preparing a Three Course Meal
+This recipe book is pretty weird becaues, as we've seen, some recipes refer to other recipes (as in CherryPie and PieCrust). 
+
+This means, asking your friend to bake a single recipe, can cause any number of other recipes to also be made. 
+
+Now suppose you are planning a three course meal. 
+1. Appetizer: GarlicBread
+2. Main: Spaghetti
+3. Dessert: CherryPie
+
+Instead of asking your friend to first make GarlicBread, then make Spaghetti, and then make CherryPie (for the fifth day in a row), you can simply ask your friend, "Could you please make a three course meal". Three course meal in this case, is acting as its own "recipe", whose ingredients are other recipes in the recipe book. So, our makefile could look like:
+```makefile
+OVEN_TEMP=425°
+
+threeCourseMeal: GarlicBread Spaghetti CherryPie
+
+GarlicBread: garlic bread butter
+    mix butter and garlic, spread on bread
+    bake bread in oven at $(OVEN_TEMP)
+
+Spaghetti: SpaghettiSauce spaghettiNoodles
+    Mix SpaghettiSauce with spaghettiNoodles
+
+CherryPie: PieCrust Cherries
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at $(OVEN_TEMP)
+```
+
+Now, the command: ```make threeCourseMeal```, will implicitly make all three components of the meal, including GarlicBread, Spaghetti, and CherryPie. 
+
+As you might guess, this is something we often take advantage of as Makefile users. 
+
+Consider the case where we have an "app" program along with a "testapp" program. Instead of running ```make app``` and ```make testapp``` separately, by convention we usually use a recipe called "all" like so:
+```Makefile
+CXX=g++
+
+all: app testapp
+
+testapp: test.o
+    $(CXX) $^ -o $@
+
+app: main.o file1.o file2.o
+    $(CXX) $^ -o $@
+
+main.o: main.cpp
+    $(CXX) $^ -c
+
+test.o: test.cpp
+    $(CXX) $^ -c
+
+file1.o: file1.cpp file1.h
+    $(CXX) $^ -c
+
+file2.o: file2.cpp file2.h
+    $(CXX) $^ -c
+```
+
+Notice how there are no instructions for the "all" recipe, since it is only used to call other recipes. 
+
+### Cleaning The Kitchen
+After all the CherryPies your friend has made you, their kitchen is a mess! Your friend is a chef though, and tries to make everything, even everyday actions, into recipes. So, they have a recipe called "cleanKitchen" which is a recipe for cleaning their kitchen!
+
+```Makefile
+OVEN_TEMP=425°
+
+CherryPie: PieCrust Cherries
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at $(OVEN_TEMP)
+
+PieCrust: flour IceWater ... shortening
+    Mix flour IceWater ... shortening
+    Flatten into circular disk to make PieCrust
+
+ChocolateChipCookies: flour ... butter
+    Mix Dry Ingredients
+    Mix Wet Ingredients
+    Pour Dry Ingredients into Wet Ingredients
+    Bake in Oven at $(OVEN_TEMP)
+
+#... other recipes, # are comment tags by the way!
+
+cleanKitchen:
+    Dispose of excess CherryPie, PieCrust, and ChocolateChipCookies
+```
+
+Notice how there are no ingredients for this action. 
+
+So now you ask your friend to ```make cleanKitchen```... but **OH NO!** your friend's pantry contains a real ingredient called "cleanKitchen". Maybe it isn't such a good idea to have recipes for every day actions.
+
+When you ask them to ```make cleanKitchen``` your friend gets confused because according to the freshness list, cleanKitchen (the ingredient) is up to date. So instead of cleaning the kitchen, your friend doesn't do anything. Indeed your friend is having an existential crisis. 
+
+To avoid this catastrophic event, your friend inserts a note to themselves in the recipe book, to remove the cleanKitchen entry from the freshness list. 
+
+```Makefile
+OVEN_TEMP=425°
+
+CherryPie: PieCrust Cherries
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at $(OVEN_TEMP)
+
+PieCrust: flour IceWater ... shortening
+    Mix flour IceWater ... shortening
+    Flatten into circular disk to make PieCrust
+
+ChocolateChipCookies: flour ... butter
+    Mix Dry Ingredients
+    Mix Wet Ingredients
+    Pour Dry Ingredients into Wet Ingredients
+    Bake in Oven at $(OVEN_TEMP)
+
+#... other recipes, # are comment tags by the way!
+cleanKitchen is a PHONY!!!
+cleanKitchen:
+    Dispose of excess CherryPie, PieCrust, and ChocolateChipCookies
+```
+
+Now when your friend consults the recipe book, they know that cleanKitchen should actually refer to an everyday action instead of a real-life ingredient. Knowing that this is an everyday action means you don't need to consult the freshness entry. 
+
+In a makefile, we also may have a ```clean``` recipe which removes files that would otherwise clutter our workspace. 
+
+```Makefile
+CXX=g++
+targets=all testapp
+
+all: $(targets)
+
+testapp: test.o
+    $(CXX) $^ -o $@
+
+app: main.o file1.o file2.o
+    $(CXX) $^ -o $@
+
+main.o: main.cpp
+    $(CXX) $^ -c
+
+test.o: test.cpp
+    $(CXX) $^ -c
+
+file1.o: file1.cpp file1.h
+    $(CXX) $^ -c
+
+file2.o: file2.cpp file2.h
+    $(CXX) $^ -c
+
+.PHONY: clean all
+clean:
+    rm -f *.o $(targets)
+```
+
+Note that all is included in the .PHONY "recipe" since it too refers to an "abstract everyday event". "all", like "clean", is not associated with any particular result, and is only used to call other recipes. 
+
+```rm -rf *.o $(targets)``` is used to remove all files ending with a ".o", with the "*" character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, ```-f``` is a flag for ```rm```, which stands for "force". Meaning, we want to remove these files without any further confirmation. 
 
 ### A Note on other uses of a Makefile
 To get the idea of a makefile across, here is another, non-compilation, based application of Makefiles. Remember, Makefiles act as a place for us to create aliases to commands. 

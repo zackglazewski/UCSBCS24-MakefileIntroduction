@@ -400,7 +400,7 @@ In cases like these, it may be ideal to compile these to object files and then l
 <p>Now suppose you ask your computer to make an application called &quot;app&quot;</p>
 <ol>
 <li>Your computer scans the makefile to search for the recipe whose name is &quot;app&quot;</li>
-<li>You scan the recipe's dependency list and check if you have every single one</li>
+<li>Your friend scans the recipe's dependency list and check if you have every single one</li>
 <li>Once every dependency is present, you execute the list of commands for that recipe and... you now have an application called &quot;app&quot;!</li>
 </ol>
 <h3 id="the-anatomy-of-a-makefile">The Anatomy of a Makefile</h3>
@@ -532,6 +532,36 @@ Your friend thinks writing this all out twice is unnecessary, and rewrites the r
 <p>When compiling our app, you notice we also have this same problem of restating our dependencies (ingredients). So, we can simplify our make commands in the following way:</p>
 <pre class="hljs"><code><div>CXX=g++
 
+<span class="hljs-section">app: main.o file1.o file2.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -o <span class="hljs-variable">$@</span>
+
+<span class="hljs-section">main.o: main.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+</div></code></pre>
+<p>Notice that <code>$^</code> is our way of saying &quot;Ingredients&quot; and <code>$@</code> is our way of saying &quot;RecipeName&quot;</p>
+<h3 id="keeping-it-fresh">Keeping it Fresh!</h3>
+<p>Your friend is quite meticulous when it comes to baking. Every time your friend bakes something from their recipe book, they keep track of the freshness of every ingredient they used. So, every ingredient that appears in their recipe book has an associated freshness level, indicated via a timestamp. So, if our friend makes CherryPie at 11:00 a.m., PieCrust, along with all of its ingredients, has its freshness level updated to: 11:00am. Cherries are also updated in the same way.</p>
+<p>Now, lets say you ask your friend, for the third day in a row, to make you a Cherry Pie. Your friend looks at the Cherry Pie they made yesterday and says,</p>
+<blockquote>
+<p>&quot;Hmm... I already have this Cherry Pie that I made you yesterday, and all the ingredients in my pantry are of the same freshness as when I made the pie. Therefore, this pie is the freshest it can be. There is no need to make a new Cherry Pie, you can have this one instead!&quot;</p>
+</blockquote>
+<p>So, your friend decides <strong>NOT</strong> make a new Cherry Pie and serves you the already existing one.</p>
+<p>However, the next day, your friend takes a trip to the store and buys a brand spanking new can of Cherries.</p>
+<p>When they get back, you ask them, for the fourth day in a row, for a Cherry Pie. Your friend consults their ingredient list and says,</p>
+<blockquote>
+<p>&quot;Hmmm... I already have this Cherry Pie that I made you yesterday. However, these Cherries that I just bought from the store are fresher than the Cherries in that pie! Therefore, I will make you a brand new pie with these new Cherries I bought, so that you may experience the most freshest Cherry Pie possible!&quot;</p>
+</blockquote>
+<p>So, your friend <strong>DOES</strong> decides to make a new Cherry Pie and serves it to you.</p>
+<p>Makefiles in the programming world work in the same exact way. In our app example, if you run: <code>make app</code>, makefile will remember the timestamps of each file at the time the command was ran. Timestamps only change if <em>a change is made to the file</em>. So, rather than making every recipe from scratch every time, makefile only re-makes the recipes which are <strong>outdated</strong>, saving on compilation time in most cases.</p>
+<p>Lets be a little more specific by considering our running makefile:</p>
+<pre class="hljs"><code><div>CXX=g++
+
 app: main.o file1.o file2.o
     $(CXX) $^ -o $@
 
@@ -544,7 +574,152 @@ file1.o: file1.cpp file1.h
 file2.o: file2.cpp file2.h
     $(CXX) $^ -c
 </div></code></pre>
-<p>Notice that <code>$^</code> is our way of saying &quot;Ingredients&quot; and <code>$@</code> is our way of saying &quot;RecipeName&quot;</p>
+<p>Suppose we start fresh and run <code>make app</code>. The last time file1.cpp was changed was 11:00 a.m. and the last time file2.cpp was changed was 11:00 a.m. So, the makefile remembers these respective timestamps after the first <code>make app</code> call. Since it is the first time, the makefile implicitly makes every recipe: main.o, file1.o, and file2.o.</p>
+<p>Now, if we run <code>make app</code> again without making any changes, Makefile will say:</p>
+<p><code>make: `app' is up to date.</code></p>
+<p>Now, lets make a change to file1.cpp at 11:05 a.m. and run <code>make app</code>.
+You will notice makefile only outputs:</p>
+<pre class="hljs"><code><div>g++ file1.cpp file1.h -c
+g++ main.o file1.o file2.o -o app
+</div></code></pre>
+<p>The makefile is <strong>NOT</strong> running:</p>
+<pre class="hljs"><code><div>g++ file2.cpp file2.h -c
+g++ main.cpp -c
+</div></code></pre>
+<p>This is because main.o and file2.o is already up to date, so there is no need to recompile them. As mentioned before, this saves on compilation time! This is a big deal because sometimes compilation can take a while, and you'd rather not recompile files that don't need to be recompiled.</p>
+<h3 id="preparing-a-three-course-meal">Preparing a Three Course Meal</h3>
+<p>This recipe book is pretty weird becaues, as we've seen, some recipes refer to other recipes (as in CherryPie and PieCrust).</p>
+<p>This means, asking your friend to bake a single recipe, can cause any number of other recipes to also be made.</p>
+<p>Now suppose you are planning a three course meal.</p>
+<ol>
+<li>Appetizer: GarlicBread</li>
+<li>Main: Spaghetti</li>
+<li>Dessert: CherryPie</li>
+</ol>
+<p>Instead of asking your friend to first make GarlicBread, then make Spaghetti, and then make CherryPie (for the fifth day in a row), you can simply ask your friend, &quot;Could you please make a three course meal&quot;. Three course meal in this case, is acting as its own &quot;recipe&quot;, whose ingredients are other recipes in the recipe book. So, our makefile could look like:</p>
+<pre class="hljs"><code><div>OVEN_TEMP=425°
+
+<span class="hljs-section">threeCourseMeal: GarlicBread Spaghetti CherryPie</span>
+
+<span class="hljs-section">GarlicBread: garlic bread butter</span>
+    mix butter and garlic, spread on bread
+    bake bread in oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-section">Spaghetti: SpaghettiSauce spaghettiNoodles</span>
+    Mix SpaghettiSauce with spaghettiNoodles
+
+<span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+</div></code></pre>
+<p>Now, the command: <code>make threeCourseMeal</code>, will implicitly make all three components of the meal, including GarlicBread, Spaghetti, and CherryPie.</p>
+<p>As you might guess, this is something we often take advantage of as Makefile users.</p>
+<p>Consider the case where we have an &quot;app&quot; program along with a &quot;testapp&quot; program. Instead of running <code>make app</code> and <code>make testapp</code> separately, by convention we usually use a recipe called &quot;all&quot; like so:</p>
+<pre class="hljs"><code><div>CXX=g++
+
+<span class="hljs-section">all: app testapp</span>
+
+<span class="hljs-section">testapp: test.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -o <span class="hljs-variable">$@</span>
+
+<span class="hljs-section">app: main.o file1.o file2.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -o <span class="hljs-variable">$@</span>
+
+<span class="hljs-section">main.o: main.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">test.o: test.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+</div></code></pre>
+<p>Notice how there are no instructions for the &quot;all&quot; recipe, since it is only used to call other recipes.</p>
+<h3 id="cleaning-the-kitchen">Cleaning The Kitchen</h3>
+<p>After all the CherryPies your friend has made you, their kitchen is a mess! Your friend is a chef though, and tries to make everything, even everyday actions, into recipes. So, they have a recipe called &quot;cleanKitchen&quot; which is a recipe for cleaning their kitchen!</p>
+<pre class="hljs"><code><div>OVEN_TEMP=425°
+
+<span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-section">PieCrust: flour IceWater ... shortening</span>
+    Mix flour IceWater ... shortening
+    Flatten into circular disk to make PieCrust
+
+<span class="hljs-section">ChocolateChipCookies: flour ... butter</span>
+    Mix Dry Ingredients
+    Mix Wet Ingredients
+    Pour Dry Ingredients into Wet Ingredients
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-comment">#... other recipes, # are comment tags by the way!</span>
+
+<span class="hljs-section">cleanKitchen:</span>
+    Dispose of excess CherryPie, PieCrust, and ChocolateChipCookies
+</div></code></pre>
+<p>Notice how there are no ingredients for this action.</p>
+<p>So now you ask your friend to <code>make cleanKitchen</code>... but <strong>OH NO!</strong> your friend's pantry contains a real ingredient called &quot;cleanKitchen&quot;. Maybe it isn't such a good idea to have recipes for every day actions.</p>
+<p>When you ask them to <code>make cleanKitchen</code> your friend gets confused because according to the freshness list, cleanKitchen (the ingredient) is up to date. So instead of cleaning the kitchen, your friend doesn't do anything. Indeed your friend is having an existential crisis.</p>
+<p>To avoid this catastrophic event, your friend inserts a note to themselves in the recipe book, to remove the cleanKitchen entry from the freshness list.</p>
+<pre class="hljs"><code><div>OVEN_TEMP=425°
+
+<span class="hljs-section">CherryPie: PieCrust Cherries</span>
+    Lay Crust on Pie Pan
+    Pour Cherries into Pie Pan
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-section">PieCrust: flour IceWater ... shortening</span>
+    Mix flour IceWater ... shortening
+    Flatten into circular disk to make PieCrust
+
+<span class="hljs-section">ChocolateChipCookies: flour ... butter</span>
+    Mix Dry Ingredients
+    Mix Wet Ingredients
+    Pour Dry Ingredients into Wet Ingredients
+    Bake in Oven at <span class="hljs-variable">$(OVEN_TEMP)</span>
+
+<span class="hljs-comment">#... other recipes, # are comment tags by the way!</span>
+cleanKitchen is a PHONY!!!
+<span class="hljs-section">cleanKitchen:</span>
+    Dispose of excess CherryPie, PieCrust, and ChocolateChipCookies
+</div></code></pre>
+<p>Now when your friend consults the recipe book, they know that cleanKitchen should actually refer to an everyday action instead of a real-life ingredient. Knowing that this is an everyday action means you don't need to consult the freshness entry.</p>
+<p>In a makefile, we also may have a <code>clean</code> recipe which removes files that would otherwise clutter our workspace.</p>
+<pre class="hljs"><code><div>CXX=g++
+targets=all testapp
+
+<span class="hljs-section">all: <span class="hljs-variable">$(targets)</span></span>
+
+<span class="hljs-section">testapp: test.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -o <span class="hljs-variable">$@</span>
+
+<span class="hljs-section">app: main.o file1.o file2.o</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -o <span class="hljs-variable">$@</span>
+
+<span class="hljs-section">main.o: main.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">test.o: test.cpp</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file1.o: file1.cpp file1.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-section">file2.o: file2.cpp file2.h</span>
+    <span class="hljs-variable">$(CXX)</span> <span class="hljs-variable">$^</span> -c
+
+<span class="hljs-meta"><span class="hljs-meta-keyword">.PHONY</span>: clean all</span>
+<span class="hljs-section">clean:</span>
+    rm -f *.o <span class="hljs-variable">$(targets)</span>
+</div></code></pre>
+<p>Note that all is included in the .PHONY &quot;recipe&quot; since it too refers to an &quot;abstract everyday event&quot;. &quot;all&quot;, like &quot;clean&quot;, is not associated with any particular result, and is only used to call other recipes.</p>
+<p><code>rm -rf *.o $(targets)</code> is used to remove all files ending with a &quot;.o&quot;, with the &quot;*&quot; character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, <code>-f</code> is a flag for <code>rm</code>, which stands for &quot;force&quot;. Meaning, we want to remove these files without any further confirmation.</p>
 <h3 id="a-note-on-other-uses-of-a-makefile">A Note on other uses of a Makefile</h3>
 <p>To get the idea of a makefile across, here is another, non-compilation, based application of Makefiles. Remember, Makefiles act as a place for us to create aliases to commands.</p>
 <h6 id="note-i-am-not-recommending-you-do-this-i-am-just-showcasing-the-functionality-of-a-makefile">Note* I am not recommending you do this, I am just showcasing the functionality of a Makefile</h6>
