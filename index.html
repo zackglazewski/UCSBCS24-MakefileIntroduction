@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>backup.md</title>
+<title>makefiles.md</title>
 <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 
 <style>
@@ -719,7 +719,7 @@ targets=all testapp
     rm -f *.o <span class="hljs-variable">$(targets)</span>
 </div></code></pre>
 <p>Note that all is included in the .PHONY &quot;recipe&quot; since it too refers to an &quot;abstract everyday event&quot;. &quot;all&quot;, like &quot;clean&quot;, is not associated with any particular result, and is only used to call other recipes.</p>
-<p><code>rm -rf *.o $(targets)</code> is used to remove all files ending with a &quot;.o&quot;, with the &quot;*&quot; character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, <code>-f</code> is a flag for <code>rm</code>, which stands for &quot;force&quot;. Meaning, we want to remove these files without any further confirmation.</p>
+<p><code>rm -f *.o $(targets)</code> is used to remove all files ending with a &quot;.o&quot;, with the &quot;*&quot; character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, <code>-f</code> is a flag for <code>rm</code>, which stands for &quot;force&quot;. Meaning, we want to remove these files without any further confirmation.</p>
 <h3 id="a-note-on-other-uses-of-a-makefile">A Note on other uses of a Makefile</h3>
 <p>To get the idea of a makefile across, here is another, non-compilation, based application of Makefiles. Remember, Makefiles act as a place for us to create aliases to commands.</p>
 <h6 id="note-i-am-not-recommending-you-do-this-i-am-just-showcasing-the-functionality-of-a-makefile">Note* I am not recommending you do this, I am just showcasing the functionality of a Makefile</h6>

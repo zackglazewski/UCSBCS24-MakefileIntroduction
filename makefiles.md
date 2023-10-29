@@ -440,7 +440,7 @@ clean:
 
 Note that all is included in the .PHONY "recipe" since it too refers to an "abstract everyday event". "all", like "clean", is not associated with any particular result, and is only used to call other recipes. 
 
-```rm -rf *.o $(targets)``` is used to remove all files ending with a ".o", with the "*" character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, ```-f``` is a flag for ```rm```, which stands for "force". Meaning, we want to remove these files without any further confirmation. 
+```rm -f *.o $(targets)``` is used to remove all files ending with a ".o", with the "*" character acting as a wildcard to match any pattern. $(targets) is invoked to remove all our executables. Finally, ```-f``` is a flag for ```rm```, which stands for "force". Meaning, we want to remove these files without any further confirmation. 
 
 ### A Note on other uses of a Makefile
 To get the idea of a makefile across, here is another, non-compilation, based application of Makefiles. Remember, Makefiles act as a place for us to create aliases to commands. 
